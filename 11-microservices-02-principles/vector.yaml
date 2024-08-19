@@ -1,0 +1,22 @@
+ources:
+  my_source_id:
+    type: docker_logs
+    exclude_containers:
+      - elasticsearch
+      - kibana
+    auto_partial_merge: true
+    partial_event_marker_field: _partial
+
+sinks:
+  my_sink_id:
+    type: elasticsearch
+    api_version: v8
+    inputs:
+      - my_source_id
+    endpoints:
+      - http://elasticsearch:9200
+    healthcheck:
+      enable: false
+    encoding:
+      except_fields:
+        - label
