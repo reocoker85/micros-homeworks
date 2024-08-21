@@ -1,9 +1,12 @@
-ources:
+sources:
   my_source_id:
     type: docker_logs
     exclude_containers:
       - elasticsearch
       - kibana
+      - grafana
+      - prometheus
+      - bucket
     auto_partial_merge: true
     partial_event_marker_field: _partial
 

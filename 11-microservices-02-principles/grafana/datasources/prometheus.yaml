@@ -6,4 +6,5 @@ datasources:
   url: http://prometheus:9090
   isDefault: true
   access: proxy
+  basicAuth: false
   editable: true
