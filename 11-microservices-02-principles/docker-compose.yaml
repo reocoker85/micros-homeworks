@@ -89,7 +89,9 @@ services:
         echo "Waiting for Elasticsearch availability";
         until curl -s http://elasticsearch:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
         echo "Setting kibana_system password";
-        until curl -s -X POST -u "elastic:${ELASTIC_PASSWORD}" "http://localhost:9200/_security/user/admin" -H 'Content-Type: application/json' -d'{  "password" : "linuxhint",  "enabled": true,  "roles" : [ "superuser", "kibana_admin" ]}' | grep -q "^{}"; do sleep 10; done;
+        until curl -s -X POST -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" http://elasticsearch:9200/_security/user/kibana_system/_password -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        echo "Create user";
+        until curl -s -X POST -u "elastic:${ELASTIC_PASSWORD}" "http://elasticsearch:9200/_security/user/admin" -H 'Content-Type: application/json' -d'{  "password" : "qwer1234",  "enabled": true,  "roles" : [ "superuser", "kibana_admin" ]}' | grep -q '^{"created":true}'; do sleep 10; done;
         echo "All done!";
 
   elasticsearch:
@@ -139,30 +141,30 @@ services:
       - elasticsearch
       - kibana
 
-  prometheus:
-    image: prom/prometheus:main
-    container_name: prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yaml'
-    ports:
-      - 9090:9090
-    restart: unless-stopped
-    volumes:
-      - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro,Z
-      - prom_data:/prometheus
-
-  grafana:
-    image: grafana/grafana:main
-    container_name: grafana
-    ports:
-      - 8082:3000
-    restart: unless-stopped
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=qwer1234
-    volumes:
-      - ./grafana/datasources:/etc/grafana/provisioning/datasources
-      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana/dashboards_files:/var/lib/grafana/dashboards
-    depends_on:
-      - prometheus
+#  prometheus:
+#    image: prom/prometheus:main
+#    container_name: prometheus
+#    command:
+#      - '--config.file=/etc/prometheus/prometheus.yaml'
+#    ports:
+#      - 9090:9090
+#    restart: unless-stopped
+#    volumes:
+#      - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro,Z
+#      - prom_data:/prometheus
+#
+#  grafana:
+#    image: grafana/grafana:main
+#    container_name: grafana
+#    ports:
+#      - 8082:3000
+#    restart: unless-stopped
+#    environment:
+#      - GF_SECURITY_ADMIN_USER=admin
+#      - GF_SECURITY_ADMIN_PASSWORD=qwer1234
+#    volumes:
+#      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+#      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+#      - ./grafana/dashboards_files:/var/lib/grafana/dashboards
+#    depends_on:
+#      - prometheus
