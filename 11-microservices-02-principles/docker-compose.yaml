@@ -12,6 +12,8 @@ services:
     restart: always
     expose:
       - 9000
+    ports:
+      - 9001:9001
     environment:
       MINIO_ROOT_USER: ${Storage_AccessKey:-STORAGE_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${Storage_Secret:-STORAGE_SECRET_KEY}
@@ -74,16 +76,34 @@ services:
       - uploader
       - security
 
+  setup:
+    image: elasticsearch:8.15.0
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+    container_name: setup
+    command:
+      - bash
+      - -c
+      - |
+        echo "Waiting for Elasticsearch availability";
+        until curl -s http://elasticsearch:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
+        echo "Setting kibana_system password";
+        until curl -s -X POST -u "elastic:${ELASTIC_PASSWORD}" "http://localhost:9200/_security/user/admin" -H 'Content-Type: application/json' -d'{  "password" : "linuxhint",  "enabled": true,  "roles" : [ "superuser", "kibana_admin" ]}' | grep -q "^{}"; do sleep 10; done;
+        echo "All done!";
+
   elasticsearch:
     image: elasticsearch:8.15.0
     container_name: elasticsearch
     restart: always
     environment:
-      - xpack.security.enabled=false
       - discovery.type=single-node
       - bootstrap.memory_lock=true
       - cluster.name=reocoker-cluster
       - ES_JAVA_OPTS=-Xms256m -Xmx256m
+      - ELASTIC_USERNAME=admin
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - xpack.security.http.ssl.enabled=false
     ulimits:
       memlock:
         soft: -1
@@ -99,6 +119,8 @@ services:
     restart: always
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
     ports:
       - 8081:5601
     depends_on:
@@ -109,8 +131,8 @@ services:
     container_name: vector
     volumes:
       - ./vector.yaml:/etc/vector/vector.yaml:ro,Z
-      - /var/lib/docker:/var/lib/docker:ro
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker:/var/lib/docker:Z
+      - /var/run/docker.sock:/var/run/docker.sock:Z
     ports:
       - 8686:8686
     depends_on:

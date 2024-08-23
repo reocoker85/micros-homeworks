@@ -1,0 +1,3 @@
+https://community.hetzner.com/tutorials/deploy-elk-stack-with-docker
+
+https://linuxhint.com/elasticsearch-create-user/
