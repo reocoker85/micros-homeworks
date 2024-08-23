@@ -23,3 +23,7 @@ sinks:
     encoding:
       except_fields:
         - label
+    auth:
+      strategy: basic
+      user: elastic
+      password: 1234567890zxc
