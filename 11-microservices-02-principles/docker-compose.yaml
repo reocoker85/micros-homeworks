@@ -12,8 +12,7 @@ services:
     restart: always
     expose:
       - 9000
-    ports:
-      - 9001:9001
+      - 9001
     environment:
       MINIO_ROOT_USER: ${Storage_AccessKey:-STORAGE_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${Storage_Secret:-STORAGE_SECRET_KEY}
@@ -141,30 +140,30 @@ services:
       - elasticsearch
       - kibana
 
-#  prometheus:
-#    image: prom/prometheus:main
-#    container_name: prometheus
-#    command:
-#      - '--config.file=/etc/prometheus/prometheus.yaml'
-#    ports:
-#      - 9090:9090
-#    restart: unless-stopped
-#    volumes:
-#      - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro,Z
-#      - prom_data:/prometheus
-#
-#  grafana:
-#    image: grafana/grafana:main
-#    container_name: grafana
-#    ports:
-#      - 8082:3000
-#    restart: unless-stopped
-#    environment:
-#      - GF_SECURITY_ADMIN_USER=admin
-#      - GF_SECURITY_ADMIN_PASSWORD=qwer1234
-#    volumes:
-#      - ./grafana/datasources:/etc/grafana/provisioning/datasources
-#      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
-#      - ./grafana/dashboards_files:/var/lib/grafana/dashboards
-#    depends_on:
-#      - prometheus
+  prometheus:
+    image: prom/prometheus:main
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+    ports:
+      - 9090:9090
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro,Z
+      - prom_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:main
+    container_name: grafana
+    ports:
+      - 8082:3000
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=qwer1234
+    volumes:
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/dashboards_files:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
